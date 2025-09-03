@@ -7,7 +7,7 @@ A Streamlit-based application that allows you to chat with the content of text d
 ## Features
 
 - **File Upload**: Upload any text file to chat with its content
-- **Multiple AI Models**: Choose from various OpenAI models (GPT-3.5 Turbo, GPT-4, GPT-4o, GPT-4o Mini)
+- **Multiple AI Models**: Choose from various OpenAI models (GPT-5, GPT-4, GPT-4o, GPT-4o Mini)
 - **Customizable Embeddings**: Select different embedding models for optimal performance
 - **Temperature Control**: Adjust the creativity/determinism of responses
 - **Reranking Option**: Enable NVIDIA reranking for improved answer quality
@@ -74,7 +74,7 @@ You'll need to provide:
 ## Model Options
 
 ### Chat Models
-- GPT-3.5 Turbo: Fast and cost-effective
+- GPT-5: latest model
 - GPT-4: More capable for complex tasks
 - GPT-4o: OpenAI's most advanced model
 - GPT-4o Mini: Smaller, cost-effective version
@@ -103,9 +103,7 @@ This application uses:
 
 Feel free to submit issues, fork the repository, and create pull requests for any improvements.
 
-## License
 
-This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
