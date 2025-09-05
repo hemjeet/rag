@@ -145,7 +145,7 @@ with st.sidebar:
                                help="Enable NVIDIA reranking for better results (requires NVIDIA API key)")
     
     st.subheader("Document Processing")
-    uploaded_file = st.file_uploader("Upload a text file", type=["txt"])
+    uploaded_file = st.file_uploader("Upload a text file", type=["md"])
     
     if uploaded_file is not None:
         # Store file content in session state

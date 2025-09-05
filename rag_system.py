@@ -1,4 +1,4 @@
-
+import re
 import os
 import json
 from langchain_community.document_loaders import TextLoader
@@ -13,6 +13,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain.retrievers import BM25Retriever, EnsembleRetriever
 from langchain_nvidia_ai_endpoints import NVIDIARerank
 from langchain.retrievers.contextual_compression import ContextualCompressionRetriever
+from langchain_text_splitters import MarkdownHeaderTextSplitter
 
 
 class MyFirstRag:
@@ -52,6 +53,44 @@ class MyFirstRag:
         self.embeddings = OpenAIEmbeddings(
             api_key = open_ai_api, model = self.embedding_model
         )
+    
+
+    def _markdown_split(self):
+        '''split markdown basis the headers'''
+        with open(self.document_path, 'r') as f:
+            doc = f.read()
+
+        headers_to_split_on = [
+            ("#", "Header 1"),
+            ("##", "Header 2"),
+            ("###", "Header 3"),
+        ]
+
+        markdown_splitter = MarkdownHeaderTextSplitter(headers_to_split_on)
+        md_header_splits = markdown_splitter.split_text(doc)
+        return md_header_splits
+
+
+
+    def _clean_text(sefl, text):
+        """
+        Clean and normalize chunk text before embedding.
+        """
+        # Remove extra whitespace (newlines, tabs, multiple spaces)
+        text = re.sub(r'\s+', ' ', text).strip()
+        
+        # Remove URLs (common in PDFs converted from web sources)
+        text = re.sub(r'http\S+', '', text)
+        
+        # Remove email addresses
+        text = re.sub(r'\S+@\S+', '', text)
+        
+        # Remove special characters/artifacts that don't contribute to meaning
+        # But BE CAREFUL: Don't remove mathematical symbols, code syntax, etc.
+        # text = re.sub(r'[^\w\s.,!?;:()\-+]', '', text) # Simple example
+        
+        return text
+
 
     
     #============================================================
@@ -87,14 +126,34 @@ class MyFirstRag:
             elif self.document_path:
                 print("Creating new vector store and BM25 index...")
                 # Load and split documents
-                with open(self.document_path, "r", encoding="utf-8") as f:
+                with open(self.document_path, "r") as f:
                     doc_content = f.read()
+                
+
+                headers_to_split_on = [
+                ("#", "Header 1"),
+                ("##", "Header 2"),
+                ("###", "Header 3"),
+                ]
+
+                markdown_splitter = MarkdownHeaderTextSplitter(headers_to_split_on)
+                md_header_splits = markdown_splitter.split_text(doc_content)
+
 
                 text_splitter = RecursiveCharacterTextSplitter(
-                    chunk_size = 1000, chunk_overlap=200, length_function=len
+                    chunk_size = 1000, 
+                    chunk_overlap = 200, 
+                    separators = ["\n##", "\n#", "\n\n", "\n", " "],
+                    length_function = len
                 )
 
-                self.documents = text_splitter.create_documents([doc_content])
+                self.documents = text_splitter.split_documents(md_header_splits)
+                
+                for doc in self.documents:
+                    doc.page_content = self._clean_text(doc.page_content)
+                
+
+                self.documents = [doc for doc in self.documents if len(doc.page_content) > 50]
 
                 # Create FAISS vector store
                 faiss_vectorstore = FAISS.from_documents(
