@@ -82,17 +82,20 @@ with st.sidebar:
         "Choose LLM Provider",
         options = list(LLM_PROVIDERS.keys()),
         index = 0,
-        help="Select which provider to use for the language model"
+        help = "Select which provider to use for the language model"
     )
     
     st.subheader("API Keys")
     
     # Show appropriate API key input based on provider
     if llm_provider == "OpenAI":
+        
         api_key = st.text_input("OpenAI API Key", type="password", 
                                help="Get your API key from https://platform.openai.com/")
         os.environ["OPENAI_API_KEY"] = api_key if api_key else ""
+    
     else:  # DeepSeek
+        
         api_key = st.text_input("DeepSeek API Key", type="password",
                                help="Get your API key from https://platform.deepseek.com/")
         os.environ["DEEPSEEK_API_KEY"] = api_key if api_key else ""
@@ -206,12 +209,12 @@ else:
     st.subheader("Ask a question about the document")
     
     # query form
-    with st.form(key="query_form", clear_on_submit=True):
+    with st.form(key = "query_form", clear_on_submit=True):
         query = st.text_input(
             "Enter your question:", 
-            placeholder="What would you like to know about the document?",
-            key="query_input",
-            value=st.session_state.query
+            placeholder = "What would you like to know about the document?",
+            key = "query_input",
+            value = st.session_state.query
         )
         
         col1, col2 = st.columns([1, 4])

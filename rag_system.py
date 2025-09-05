@@ -148,7 +148,7 @@ class MyFirstRag:
         nvidia_api = os.getenv("NVIDIA_API_KEY")
         
         reranker = NVIDIARerank(
-            model="nv-rerank-qa-mistral-4b:1", 
+            model = "nv-rerank-qa-mistral-4b:1", 
             api_key=nvidia_api,
         )
 
