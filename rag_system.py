@@ -1,3 +1,4 @@
+
 import os
 import json
 from langchain_community.document_loaders import TextLoader
@@ -16,9 +17,10 @@ from langchain.retrievers.contextual_compression import ContextualCompressionRet
 
 class MyFirstRag:
     def __init__(
-        self, model_name, embedding_model, temperature, document_path: str = None, vector_store_path: str = "faiss_index_openai",
+        self, llm_provider, model_name, embedding_model, temperature, document_path: str = None, vector_store_path: str = "faiss_index_openai",
        
-    ):
+    ):  
+        self.llm_provider = llm_provider
         self.model_name = model_name
         self.embedding_model = embedding_model
         self.temp = temperature
@@ -28,17 +30,27 @@ class MyFirstRag:
 
         # Get API keys from environment variables
         open_ai_api = os.getenv("OPENAI_API_KEY")
+        deepseek_api_key = os.getenv("DEEPSEEK_API_KEY")
         nvidia_api = os.getenv("NVIDIA_API_KEY")
 
+        if self.llm_provider == 'openai':
+            
+            self.llm = ChatOpenAI(
+                model = self.model_name,
+                temperature = self.temp,
+                api_key = open_ai_api,
+            )
         
-        self.llm = ChatOpenAI(
-            model= self.model_name,
-            temperature= self.temp,
-            api_key=open_ai_api,
-        )
+        else:
+            self.llm = ChatOpenAI(
+                api_key = deepseek_api_key, 
+                model = 'deepseek-chat',
+                base_url = 'https://api.deepseek.com',
+                streaming = True
+            )
 
         self.embeddings = OpenAIEmbeddings(
-            api_key=open_ai_api, model = self.embedding_model
+            api_key = open_ai_api, model = self.embedding_model
         )
 
     
@@ -79,7 +91,7 @@ class MyFirstRag:
                     doc_content = f.read()
 
                 text_splitter = RecursiveCharacterTextSplitter(
-                    chunk_size=1000, chunk_overlap=200, length_function=len
+                    chunk_size = 1000, chunk_overlap=200, length_function=len
                 )
 
                 self.documents = text_splitter.create_documents([doc_content])
@@ -136,7 +148,7 @@ class MyFirstRag:
         nvidia_api = os.getenv("NVIDIA_API_KEY")
         
         reranker = NVIDIARerank(
-            model="nv-rerank-qa-mistral-4b:1", 
+            model = "nv-rerank-qa-mistral-4b:1", 
             api_key=nvidia_api,
         )
 
@@ -179,7 +191,10 @@ class MyFirstRag:
         # Create the chain
         question_answer_chain = create_stuff_documents_chain(self.llm, prompt)
         chain = create_retrieval_chain(retriever, question_answer_chain)
-
-        # Invoke the chain
-        result = chain.invoke({"input": query})
-        return result.get("answer")
+        
+        if self.llm_provider == 'deepseek':
+            return chain
+        
+        else:
+            result = chain.invoke({"input": query})
+            return result.get('answer')
