@@ -146,6 +146,18 @@ with st.sidebar:
     st.subheader("Processing Options")
     use_reranking = st.checkbox("Use Reranking", value=False, 
                                help = "Enable NVIDIA reranking for better results (requires NVIDIA API key)")
+    
+    if use_reranking:
+        nvidia_key = st.text_input("NVIDIA API Key", type="password",
+                                  help="Required for reranking functionality")
+        if nvidia_key:
+            os.environ["NVIDIA_API_KEY"] = nvidia_key
+        else:
+            # Clear the environment variable if no key is provided
+            os.environ.pop("NVIDIA_API_KEY", None)
+    else:
+        # Clear the environment variable when reranking is disabled
+        os.environ.pop("NVIDIA_API_KEY", None)
 
     st.subheader("Document Processing")
     uploaded_file = st.file_uploader("Upload a text file", type = ["md", "txt"])
