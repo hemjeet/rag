@@ -51,7 +51,8 @@ class MyFirstRag:
             )
 
         self.embeddings = OpenAIEmbeddings(
-            api_key = open_ai_api, model = self.embedding_model
+            api_key = open_ai_api, 
+            model = self.embedding_model
         )
     
 
@@ -111,7 +112,7 @@ class MyFirstRag:
                     self.vector_store_path,
                     self.embeddings,
                     allow_dangerous_deserialization=True,
-                ).as_retriever(search_kwargs={"k": 5})
+                ).as_retriever(search_kwargs = {"k": 5})
 
                 # Load BM25 documents
                 with open(
@@ -136,6 +137,7 @@ class MyFirstRag:
                 ("###", "Header 3"),
                 ]
 
+                # Use markdown splitter for splittting the markdown
                 markdown_splitter = MarkdownHeaderTextSplitter(headers_to_split_on)
                 md_header_splits = markdown_splitter.split_text(doc_content)
 
@@ -149,10 +151,11 @@ class MyFirstRag:
 
                 self.documents = text_splitter.split_documents(md_header_splits)
                 
+                # clean text for better embeddings
                 for doc in self.documents:
                     doc.page_content = self._clean_text(doc.page_content)
                 
-
+                # Filter out very small page contents
                 self.documents = [doc for doc in self.documents if len(doc.page_content) > 50]
 
                 # Create FAISS vector store
@@ -160,10 +163,10 @@ class MyFirstRag:
                     self.documents, self.embeddings
                 )
                 faiss_vectorstore.save_local(self.vector_store_path)
-                faiss_retriever = faiss_vectorstore.as_retriever(search_kwargs={"k": 5})
+                faiss_retriever = faiss_vectorstore.as_retriever(search_kwargs = {"k": 5})
 
                 # Create BM25 retriever
-                bm25_retriever = BM25Retriever.from_documents(self.documents, k=5)
+                bm25_retriever = BM25Retriever.from_documents(self.documents, k = 5)
 
                 # Save BM25 documents for future use
                 docs_data = [
@@ -172,9 +175,9 @@ class MyFirstRag:
                 ]
 
                 with open(
-                    f"{self.vector_store_path}/bm25_docs.json", "w", encoding="utf-8"
+                    f"{self.vector_store_path}/bm25_docs.json", "w", encoding = "utf-8"
                 ) as f:
-                    json.dump(docs_data, f, ensure_ascii=False, indent=2)
+                    json.dump(docs_data, f, ensure_ascii = False, indent = 2)
 
                 print(
                     f"Vector store and BM25 index saved to {self.vector_store_path}"
@@ -186,7 +189,7 @@ class MyFirstRag:
 
             # Create ensemble retriever
             ensemble_retriever = EnsembleRetriever(
-                retrievers=[bm25_retriever, faiss_retriever], weights=[0.4, 0.6]
+                retrievers = [bm25_retriever, faiss_retriever], weights = [0.4, 0.6]
             )
 
             return ensemble_retriever
@@ -208,11 +211,11 @@ class MyFirstRag:
         
         reranker = NVIDIARerank(
             model = "nv-rerank-qa-mistral-4b:1", 
-            api_key=nvidia_api,
+            api_key = nvidia_api,
         )
 
         compression_retriever = ContextualCompressionRetriever(
-            base_compressor=reranker, base_retriever=ens_rtr
+            base_compressor = reranker, base_retriever = ens_rtr
         )
         return compression_retriever
     

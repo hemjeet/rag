@@ -1,4 +1,4 @@
-import os
+# import os
 import streamlit as st
 import tempfile
 from rag_system import MyFirstRag
@@ -28,7 +28,7 @@ MODEL_OPTIONS = {
     },
     "deepseek": {
         "DeepSeek Chat": "deepseek-chat",
-        "DeepSeek Coder": "deepseek-reasoning"
+        "DeepSeek Reasoning": "deepseek-reasoning"
     }
 }
 
@@ -119,24 +119,24 @@ with st.sidebar:
     )
     
     if llm_provider == 'DeepSeek':
-            api_key = st.text_input("OpenAI API Key for embeddings", type="password", 
-                               help="Get your API key from https://platform.openai.com/")
+            api_key = st.text_input("OpenAI API Key for embeddings", type = "password", 
+                               help = "Get your API key from https://platform.openai.com/")
             os.environ['OPENAI_API_KEY'] = api_key
 
     selected_embedding_model = st.selectbox(
         "Embedding Model",
         options = list(EMBEDDING_OPTIONS.keys()),
-        index=0,
+        index = 0,
         help = "Select which OpenAI model to use for creating document embeddings"
     )
 
     st.subheader('Set temperature for model')
     temp = st.slider(
         "Temperature", 
-        min_value=0.0, 
-        max_value=1.0, 
-        value=0.0, 
-        step=0.1,
+        min_value = 0.0, 
+        max_value = 1.0, 
+        value = 0.0, 
+        step = 0.1,
         help="Controls randomness: 0 = deterministic, 1 = more creative"
     )
     
@@ -145,7 +145,7 @@ with st.sidebar:
                                help="Enable NVIDIA reranking for better results (requires NVIDIA API key)")
     
     st.subheader("Document Processing")
-    uploaded_file = st.file_uploader("Upload a text file", type=["md"])
+    uploaded_file = st.file_uploader("Upload a text file", type = ["md"])
     
     if uploaded_file is not None:
         # Store file content in session state
@@ -166,7 +166,7 @@ with st.sidebar:
                 with st.spinner("Processing document and building indexes..."):
                     try:
                         # Create a temporary file for processing
-                        with tempfile.NamedTemporaryFile(delete=False, suffix=".txt", mode='w', encoding='utf-8') as tmp:
+                        with tempfile.NamedTemporaryFile(delete = False, suffix= "md", mode = 'w', encoding = 'utf-8') as tmp:
                             tmp.write(st.session_state.uploaded_file_content)
                             tmp_path = tmp.name
                         
