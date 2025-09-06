@@ -4,4 +4,6 @@ langchain_core==0.3.75
 langchain_nvidia_ai_endpoints==0.3.17
 langchain_openai==0.3.32
 langchain_text_splitters==0.3.11
+protobuf==6.32.0
 streamlit==1.46.1
+google-cloud-storage

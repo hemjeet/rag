@@ -111,7 +111,7 @@ class MyFirstRag:
                 faiss_retriever = FAISS.load_local(
                     self.vector_store_path,
                     self.embeddings,
-                    allow_dangerous_deserialization=True,
+                    allow_dangerous_deserialization = True,
                 ).as_retriever(search_kwargs = {"k": 5})
 
                 # Load BM25 documents
