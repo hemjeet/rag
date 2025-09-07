@@ -7,3 +7,5 @@ langchain_text_splitters==0.3.11
 protobuf==6.32.0
 streamlit==1.46.1
 google-cloud-storage
+faiss-cpu
+rank_bm25
