@@ -2,7 +2,7 @@ import os
 from google.cloud import storage
 import streamlit as st
 import tempfile
-
+import time
 
 # GCS Configuration
 def stream_data(chain, query):
@@ -14,10 +14,9 @@ def stream_data(chain, query):
 #===============================
 # GCP CONFIG
 #===============================
-# GCS_BUCKET_NAME = os.getenv('bucket_name')
-# GCS_BASE_PATH = os.getenv('gcs_base_path')
-GCS_BUCKET_NAME = 'rag-file'
-GCS_BASE_PATH = 'files'
+GCS_BUCKET_NAME = os.getenv('bucket_name')
+GCS_BASE_PATH = os.getenv('gcs_base_path')
+
 
 
 def get_gcs_client():
@@ -133,4 +132,51 @@ def download_from_gcs(gcs_path):
         st.error(f"Error downloading from GCS: {e}")
         return None
 
+def optimize_faiss_index(vector_store):
+    """Optimize FAISS index for faster search performance"""
+    try:
+        if hasattr(vector_store, 'index'):
+            # Reduce the number of clusters to search (faster but less accurate)
+            vector_store.index.nprobe = 10  # Default is often 32 or higher
+            
+            # For IVF indexes, ensure direct map is available for faster reconstruction
+            if hasattr(vector_store.index, 'make_direct_map'):
+                vector_store.index.make_direct_map()
+                
+            # For HNSW indexes, adjust efSearch parameter
+            if hasattr(vector_store.index, 'hnsw'):
+                vector_store.index.hnsw.efSearch = 64  # Balance between speed and accuracy
+                
+        return vector_store
+    except Exception as e:
+        st.sidebar.warning(f"Could not optimize FAISS index: {e}")
+        return vector_store
+
+def load_vector_store_to_memory():
+    """Load the vector store to memory for faster access and optimize it"""
+    if (st.session_state.rag and 
+        hasattr(st.session_state.rag, 'faiss_retriever') and 
+        st.session_state.rag.faiss_retriever and
+        not st.session_state.vector_store_loaded):
+        
+        try:
+            start_time = time.time()
+            
+            # Check if the vector store has a load_local method
+            if hasattr(st.session_state.rag.faiss_retriever, 'vectorstore'):
+                vectorstore = st.session_state.rag.faiss_retriever.vectorstore
+                
+                # Optimize the FAISS index for faster search
+                optimized_vectorstore = optimize_faiss_index(vectorstore)
+                
+                st.session_state.vector_store_loaded = True
+                load_time = time.time() - start_time
+                st.sidebar.success(f"Vector store optimized in {load_time:.2f}s")
+                return True
+            
+        except Exception as e:
+            st.sidebar.warning(f"Could not optimize vector store: {e}")
+            st.session_state.vector_store_loaded = False
+            
+    return False
 

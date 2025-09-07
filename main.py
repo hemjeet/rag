@@ -61,6 +61,11 @@ if "answer" not in st.session_state:
 if "session_id" not in st.session_state:
     st.session_state.session_id = str(uuid.uuid4())[:8]  # Unique session ID for GCS paths
 
+if "vector_store_loaded" not in st.session_state:
+    st.session_state.vector_store_loaded = False
+if "last_query_time" not in st.session_state:
+    st.session_state.last_query_time = 0
+
 
 def clear_query():
     """Clear the query input"""
@@ -172,28 +177,27 @@ with st.sidebar:
         if st.button("Process Document"):
             if not api_key:
                 st.error(f"Please provide an {llm_provider} API key")
+            elif use_reranking and not os.environ.get("NVIDIA_API_KEY"):
+                st.error("Please provide NVIDIA API key when reranking is enabled")
             else:
                 with st.spinner("Processing document and building indexes..."):
                     try:
-                        # Create a temporary file for processing
-                        local_file_path = download_from_gcs(st.session_state.uploaded_gcs_path)
-                        
                         provider = LLM_PROVIDERS[llm_provider]
                         model_name = MODEL_OPTIONS[provider][selected_model_name]
                         embedding_model = EMBEDDING_OPTIONS[selected_embedding_model]
                         
-                        # Use GCS path for vector store
-                        vector_store_path = f"gs://{GCS_BUCKET_NAME}/{GCS_BASE_PATH}/{st.session_state.session_id}/vector_store"
+                        # Download from GCS to temporary file
+                        local_file_path = download_from_gcs(st.session_state.uploaded_gcs_path)
                         
                         if local_file_path:
                             # Create temporary directory for vector store
                             temp_vector_dir = tempfile.mkdtemp()
                             st.session_state.temp_vector_store_dir = temp_vector_dir
                             st.session_state.local_file_path = local_file_path
-                        
+                            
                             # Initialize RAG with LOCAL paths only
                             st.session_state.rag = MyFirstRag(
-                                document_path = local_file_path,  # Local file path
+                                document_path=local_file_path,  # Local file path
                                 vector_store_path = temp_vector_dir,  # Local directory path
                                 model_name = model_name,
                                 embedding_model = embedding_model,
@@ -201,7 +205,13 @@ with st.sidebar:
                                 llm_provider = provider
                             )
                             st.session_state.document_processed = True
+                            st.session_state.vector_store_loaded = False
                             st.success("Document processed successfully!")
+                            
+                            # Immediately try to optimize the vector store
+                            if load_vector_store_to_memory():
+                                st.sidebar.success("Vector store optimized for fast search!")
+                            
                         else:
                             st.error("Failed to download file from GCS")
                         
@@ -220,7 +230,6 @@ if not st.session_state.document_processed:
 else:
     # Display current model selection
     if st.session_state.rag:
-        st.session_state.rag.vector_store.load_local(st.session_state.temp_vector_store_dir)
         st.sidebar.info(f"Using: {llm_provider} - {selected_model_name} with {selected_embedding_model} embeddings")
         st.sidebar.info(f"Vector Store: {st.session_state.vector_store_path}")
     
