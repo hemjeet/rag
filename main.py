@@ -41,6 +41,8 @@ EMBEDDING_OPTIONS = {
     "Ada-002 (balanced)": "text-embedding-ada-002"
 }
 
+if st.session_state.rag:
+    st.session_state.rag.vector_store.load_local(st.session_state.temp_vector_store_dir)
 
 # Initialize session state
 if "rag" not in st.session_state:
@@ -211,7 +213,7 @@ with st.sidebar:
 # MAIN CHAT SECTION 
 #===============================================================
 
-st.title("📚 RAG System - GCP Deployment")
+st.title("📚 RAG System")
 st.markdown("Upload a text file and ask questions about its content.")
 
 if not st.session_state.document_processed:
