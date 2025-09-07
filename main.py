@@ -41,8 +41,7 @@ EMBEDDING_OPTIONS = {
     "Ada-002 (balanced)": "text-embedding-ada-002"
 }
 
-if st.session_state.rag:
-    st.session_state.rag.vector_store.load_local(st.session_state.temp_vector_store_dir)
+
 
 # Initialize session state
 if "rag" not in st.session_state:
@@ -221,6 +220,7 @@ if not st.session_state.document_processed:
 else:
     # Display current model selection
     if st.session_state.rag:
+        st.session_state.rag.vector_store.load_local(st.session_state.temp_vector_store_dir)
         st.sidebar.info(f"Using: {llm_provider} - {selected_model_name} with {selected_embedding_model} embeddings")
         st.sidebar.info(f"Vector Store: {st.session_state.vector_store_path}")
     
