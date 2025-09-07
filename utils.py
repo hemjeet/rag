@@ -124,7 +124,7 @@ def download_from_gcs(gcs_path):
         blob = bucket.blob(gcs_path)
         
         # Create a temporary file
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".md", mode='w', encoding='utf-8') as tmp_file:
+        with tempfile.NamedTemporaryFile(delete = False, suffix=".md", mode='w', encoding='utf-8') as tmp_file:
             content = blob.download_as_text()
             tmp_file.write(content)
             return tmp_file.name

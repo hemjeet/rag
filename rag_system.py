@@ -112,7 +112,7 @@ class MyFirstRag:
                     self.vector_store_path,
                     self.embeddings,
                     allow_dangerous_deserialization = True,
-                ).as_retriever(search_kwargs = {"k": 5})
+                ).as_retriever(search_kwargs = {"k": 2})
 
                 # Load BM25 documents
                 with open(
@@ -122,7 +122,7 @@ class MyFirstRag:
                     self.documents = [Document(**doc) for doc in docs_data]
 
                 # Create BM25 retriever
-                bm25_retriever = BM25Retriever.from_documents(self.documents, k=5)
+                bm25_retriever = BM25Retriever.from_documents(self.documents, k = 2)
 
             elif self.document_path:
                 print("Creating new vector store and BM25 index...")

@@ -41,9 +41,6 @@ EMBEDDING_OPTIONS = {
     "Ada-002 (balanced)": "text-embedding-ada-002"
 }
 
-# GCS Configuration
-# GCS_BUCKET_NAME = st.secrets.get("GCS_BUCKET_NAME", "your-rag-bucket")  # Set in Streamlit secrets
-# GCS_BASE_PATH = "rag_files"
 
 # Initialize session state
 if "rag" not in st.session_state:
@@ -102,11 +99,6 @@ with st.sidebar:
                                help="Get your API key from https://platform.deepseek.com/")
         os.environ["DEEPSEEK_API_KEY"] = api_key if api_key else ""
     
-    nvidia_key = st.text_input("NVIDIA API Key", type="password",
-                              help="Required for reranking functionality")
-    
-    if nvidia_key:
-        os.environ["NVIDIA_API_KEY"] = nvidia_key
     
     st.subheader("Model Selection")
     
@@ -123,6 +115,7 @@ with st.sidebar:
     if llm_provider == 'DeepSeek':
         openai_embedding_key = st.text_input("OpenAI API Key for embeddings", type="password", 
                                help="Get your API key from https://platform.openai.com/")
+        
         os.environ['OPENAI_API_KEY_FOR_EMBEDDINGS'] = openai_embedding_key
 
     selected_embedding_model = st.selectbox(
@@ -148,8 +141,8 @@ with st.sidebar:
                                help = "Enable NVIDIA reranking for better results (requires NVIDIA API key)")
     
     if use_reranking:
-        nvidia_key = st.text_input("NVIDIA API Key", type="password",
-                                  help="Required for reranking functionality")
+        nvidia_key = st.text_input("NVIDIA API Key", type = "password",
+                                  help = "Required for reranking functionality")
         if nvidia_key:
             os.environ["NVIDIA_API_KEY"] = nvidia_key
         else:
@@ -196,11 +189,7 @@ with st.sidebar:
                             temp_vector_dir = tempfile.mkdtemp()
                             st.session_state.temp_vector_store_dir = temp_vector_dir
                             st.session_state.local_file_path = local_file_path
-                            
-                            # DEBUG: Show paths being used
-                            st.sidebar.info(f"Local file: {local_file_path}")
-                            st.sidebar.info(f"Vector store: {temp_vector_dir}")
-                            
+                        
                             # Initialize RAG with LOCAL paths only
                             st.session_state.rag = MyFirstRag(
                                 document_path = local_file_path,  # Local file path
@@ -215,7 +204,6 @@ with st.sidebar:
                         else:
                             st.error("Failed to download file from GCS")
                         
-
                     except Exception as e:
                         st.error(f"Error processing document: {e}")
 
